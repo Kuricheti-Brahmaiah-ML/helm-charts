@@ -32,6 +32,25 @@ spec:
       schedulerName: {{ .Values.global.sfScheduler.schedulerName }}
       {{- end }}
       containers:
+        {{- if .Values.global.snappyflowKey }}
+        - name: presto-worker-sfagent
+          image: snappyflowml/sfagent:latest
+          imagePullPolicy: Always
+          command:
+          - /app/sfagent
+          - -config-file
+          - /opt/sfagent/config.yaml
+          - -enable-console-log
+          env:
+          - name: APP_NAME
+            value: {{ .Values.global.snappyflowAppName }}
+          - name: PROJECT_NAME
+            value: {{ .Values.global.snappyflowProjectName }}
+          volumeMounts:
+          - name: sfagent
+            mountPath: /opt/sfagent/config.yaml
+            subPath: config.yaml  
+        {{- end }}
         - name: sfpresto-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -66,5 +85,7 @@ spec:
       - name: config
         configMap:
           name: {{ include "sf-presto.fullname" . }}-worker
+      - name: sfagent
+        configMap:
+          name: {{ include "sf-presto.fullname" . }}-sfagent
       terminationGracePeriodSeconds: {{ sub (mul .Values.env.Grace_Period_Seconds 2) 10 }}
-

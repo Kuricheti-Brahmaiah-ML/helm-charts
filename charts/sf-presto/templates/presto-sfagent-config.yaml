@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sf-presto.fullname" . }}-sfagent
+  labels:
+    {{- include "sf-presto.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    key: "{{ .Values.global.snappyflowKey }}"
+    metrics:
+        plugins:
+        - name: presto
+          enabled: true
+          interval: 600
+          config:
+            catalog: postgresql
+            schema: public
